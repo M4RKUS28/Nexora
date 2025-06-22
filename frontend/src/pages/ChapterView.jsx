@@ -1,7 +1,7 @@
 //ChapterView.jsx - Fixed polling logic
 
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Container,
@@ -34,13 +34,8 @@ function ChapterView() {
   const { t } = useTranslation('chapterView');
   const { courseId, chapterId } = useParams();
   const navigate = useNavigate();
-  const location = useLocation(); // Get location to read query params
   const { toolbarOpen, toolbarWidth } = useToolbar();
   const isMobile = useMediaQuery('(max-width: 768px)');
-
-  // Read tab from URL, default to 'content'
-  const queryParams = new URLSearchParams(location.search);
-  const initialTab = queryParams.get('tab') || 'content';
   
   const [chapter, setChapter] = useState(null);
   const [images, setImages] = useState([]);
@@ -48,7 +43,7 @@ function ChapterView() {
   const [loading, setLoading] = useState(true);
   const [mediaLoading, setMediaLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const [activeTab, setActiveTab] = useState('content');
   const [markingComplete, setMarkingComplete] = useState(false);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [deletingItem, setDeletingItem] = useState(null);

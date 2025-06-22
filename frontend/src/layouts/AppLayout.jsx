@@ -37,8 +37,6 @@ import {
 import AppFooter from '../components/AppFooter';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
-import CourseSidebar from '../components/CourseSidebar'; // Import the new component
-import { courseService } from '../api/courseService'; // To fetch course data
 
 // MainLink component for sidebar navigation
 export const MainLink = ({ icon, color, label, to, isActive, collapsed, onNavigate }) => {
@@ -122,43 +120,15 @@ export const MainLink = ({ icon, color, label, to, isActive, collapsed, onNaviga
 function AppLayout() {
   const theme = useMantineTheme();
   const navigate = useNavigate();
-  const location = useLocation(); // Use useLocation to get current path
   const { user, logout } = useAuth();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const { t } = useTranslation(['navigation', 'app', 'settings']);
   const dark = colorScheme === 'dark';
+  // Check if we're on mobile
   const isMobile = useMediaQuery('(max-width: 768px)');
+  
+  // Set default navbar state based on device type - closed on mobile, opened on desktop
   const [opened, setOpened] = useState(!isMobile);
-
-  const [course, setCourse] = useState(null);
-  const [chapters, setChapters] = useState([]);
-
-  // Check if the current route is a course or chapter view
-  const courseViewMatch = location.pathname.match(/\/dashboard\/courses\/(\d+)/);
-  const isCoursePage = !!courseViewMatch;
-  const courseId = courseViewMatch ? courseViewMatch[1] : null;
-
-  useEffect(() => {
-    if (isCoursePage && courseId) {
-      const fetchCourseData = async () => {
-        try {
-          const [courseData, chaptersData] = await Promise.all([
-            courseService.getCourseById(courseId),
-            courseService.getCourseChapters(courseId),
-          ]);
-          setCourse(courseData);
-          setChapters(chaptersData || []);
-        } catch (error) {
-          console.error('Failed to fetch course data for sidebar:', error);
-        }
-      };
-      fetchCourseData();
-    } else {
-      // Clear course data when not on a course page
-      setCourse(null);
-      setChapters([]);
-    }
-  }, [isCoursePage, courseId]);
   
   // Toggle navbar visibility
   const toggleNavbar = () => setOpened((o) => !o);
@@ -344,13 +314,9 @@ function AppLayout() {
           
           {/* Navigation Links */}
           <Navbar.Section grow mt="xs">
-            {isCoursePage ? (
-              <CourseSidebar course={course} chapters={chapters} />
-            ) : (
-              <Stack spacing="xs">
-                {mainLinksComponents}
-              </Stack>
-            )}
+            <Stack spacing="xs">
+              {mainLinksComponents}
+            </Stack>
           </Navbar.Section>
 
           {/* Profile section at bottom */}
