@@ -355,44 +355,32 @@ function ChapterView() {
     }
   };
 
-  const sidebarWidth = isMobile
-    ? (toolbarOpen ? window.innerWidth : 0)
-    : (toolbarOpen ? toolbarWidth : 0);
+  
 
   if (loading) {
     return (
-      <Container>
-        <Group position="center" mt="xl">
-          <Loader size="lg" />
-          <Text>{t('loading')}</Text>
-        </Group>
-      </Container>
+      <Group position="center" mt="xl">
+        <Loader size="lg" />
+        <Text>{t('loading')}</Text>
+      </Group>
     );
   }
 
   if (error) {
     return (
-      <Container>
-        <Alert
-          icon={<IconAlertCircle size={16} />}
-          title={t('errors.genericTitle')}
-          color="red"
-          mt="xl"
-        >
-          {error}
-        </Alert>
-      </Container>
+      <Alert
+        icon={<IconAlertCircle size={16} />}
+        title={t('errors.genericTitle')}
+        color="red"
+        mt="xl"
+      >
+        {error}
+      </Alert>
     );
   }
 
   return (
-    <div
-      style={{
-        marginRight: sidebarWidth,
-        transition: 'margin-right 0.3s ease',
-        minHeight: '100vh',
-      }}
-    >
+    <>
       {/* Add CSS for blinking animation */}
       <style>
         {`
@@ -548,7 +536,7 @@ function ChapterView() {
       </Container>
 
       <ToolbarContainer courseId={courseId} chapterId={chapterId} />
-    </div>
+    </>
   );
 }
 

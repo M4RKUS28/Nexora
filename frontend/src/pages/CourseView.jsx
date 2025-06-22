@@ -211,7 +211,7 @@ function CourseView() {
   const showNonCriticalError = error && course;
 
   return (
-    <Container size="lg" py="xl">
+    <>
       {showNonCriticalError && (
          <Alert
          icon={<IconAlertCircle size={16} />}
@@ -785,7 +785,7 @@ function CourseView() {
           </SimpleGrid>
         </>
       )}
-    </Container>
+    </>
   );
 }
 
