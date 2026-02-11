@@ -1,0 +1,796 @@
+manifest:
+  version: "0.1.3"
+  schema: https://a2as.org/cert/schema
+  subject:
+    name: m4rkus28/nexora
+    source: https://github.com/m4rkus28/nexora
+    branch: main
+    commit: "f4e22f36"
+    scope: [backend/src/agents/chat_agent/agent.py, backend/src/agents/explainer_agent/agent.py, backend/src/agents/flashcard_agent/agent.py,
+      backend/src/agents/flashcard_agent/instructions_txt.py, backend/src/agents/flashcard_agent/learning_agent.py, backend/src/agents/flashcard_agent/schema.py,
+      backend/src/agents/flashcard_agent/testing_agent.py, backend/src/agents/grader_agent/agent.py, backend/src/agents/grader_agent/schema.py,
+      backend/src/agents/html_agent/agent.py, backend/src/agents/image_agent/agent.py, backend/src/agents/info_agent/agent.py,
+      backend/src/agents/info_agent/schema.py, backend/src/agents/planner_agent/agent.py, backend/src/agents/planner_agent/schema.py,
+      backend/src/agents/tester_agent/agent.py, backend/src/agents/tester_agent/schema.py, backend/src/services/agent_service.py,
+      backend/src/services/chat_service.py]
+  issued:
+    by: A2AS.org
+    at: '2026-02-11T16:37:29Z'
+    url: https://a2as.org/certified/agents/m4rkus28/nexora
+  signatures:
+    digest: sha256:uawVKdar-Ts0BV_TGYNsv6WO56coppqTdPMaFnYepx4
+    key: ed25519:63oMX9ZTf61wgKYo4X44zWcXGOhAQ9aB_ZbaauqcxLo
+    sig: ed25519:qhilPaeyRE8wtoyP20yEwhTM-4TIVfcn_zzD6lh9dWz8EetZehFoy-x1oHM9tDzKveF7ZP2_CJ-CUWejBV_zBg
+
+agents:
+  agent:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: code_review_agent
+      description: Agent for testing the user on studied material
+      instruction: ''
+      function: __init__
+  agent.ChatAgent.chat_agent:
+    type: class
+    models: [gemini-2.5-flash-preview-05-20]
+    params:
+      name: chat_agent
+      description: Agent for creating a small chat for a course
+      instruction:
+        function: load_instruction_from_file
+        type: file_load
+        file: chat_agent/instructions.txt
+      class: ChatAgent
+  agent.LearningFlashcardAgent.llm_agent:
+    type: class
+    models: [gemini-2.5-pro]
+    params:
+      name: learning_flashcard_agent
+      description: Agent for generating learning flashcards from PDF content
+      global_instruction: ''
+      instruction: [Generate front/back learning flashcards from the provided content. Focus on key concepts and understanding.]
+      class: LearningFlashcardAgent
+  agent.TestingFlashcardAgent.llm_agent:
+    type: class
+    models: [gemini-2.5-pro]
+    params:
+      name: testing_flashcard_agent
+      description: Agent for generating multiple choice questions from PDF content
+      global_instruction: ''
+      instruction: [Generate multiple choice questions from the provided text content. Focus on key concepts and create plausible
+          distractors.]
+      class: TestingFlashcardAgent
+  explainer_agent:
+    type: instance
+    models: [gemini-2.5-pro]
+    params:
+      name: explainer_agent
+      description: Agent for creating engaging visual explanations using react
+      global_instruction: ''
+      instruction: [END OF INSTRUCTIONS, '- - - - - -', '## Current course creation state', 'Initial Interaction:', 'Nexora:
+          "What do you want to learn today?"', 'User: "{query}"', 'All chapters, created by the Planner Agent:', '{chapters_str}',
+        Please only include content about the chapter that is assigned to you in the following query.]
+      function: __init__
+  grader_agent:
+    type: instance
+    models: [gemini-2.0-flash]
+    params:
+      name: grader_agent
+      description: Agent for testing the user on studied material
+      output_schema: Grading
+      instruction: ''
+      disallow_transfer_to_parent: "True"
+      disallow_transfer_to_peers: "True"
+      function: __init__
+  html_agent:
+    type: instance
+    models: [gemini-2.5-flash-preview-05-20]
+    params:
+      name: html_agent
+      description: Agent for creating reveal.js slide decks for great explanations and visualizations.
+      instruction: full_instructions
+      function: __init__
+  image_agent:
+    type: instance
+    models: [gemini-2.5-flash-lite-preview-06-17]
+    tools: [unsplash_mcp_toolset]
+    mcp: [unsplash_mcp_toolset]
+    params:
+      name: image_agent
+      description: Agent for searching an image for a course using an external service.
+      instruction:
+        function: load_instruction_from_file
+        type: file_load
+        file: image_agent/instructions.txt
+      after_model_callback: get_url_from_response
+      function: __init__
+  info_agent:
+    type: instance
+    models: [gemini-2.5-flash-lite-preview-06-17]
+    params:
+      name: info_agent
+      output_schema: CourseInfo
+      description: Agent for creating a small info for a course
+      instruction:
+        function: load_instruction_from_file
+        type: file_load
+        file: info_agent/instructions.txt
+      disallow_transfer_to_parent: "True"
+      disallow_transfer_to_peers: "True"
+      function: __init__
+  planner_agent:
+    type: instance
+    models: [gemini-2.5-flash-lite-preview-06-17]
+    params:
+      name: planner_agent
+      description: Agent for planning Learning Paths and Courses
+      output_schema: LearningPath
+      instruction:
+        function: load_instruction_from_file
+        type: file_load
+        file: planner_agent/instructions.txt
+      disallow_transfer_to_parent: "True"
+      disallow_transfer_to_peers: "True"
+      function: __init__
+  tester_agent:
+    type: instance
+    models: [gemini-2.5-flash]
+    params:
+      name: tester_agent
+      description: Agent for testing the user on studied material
+      output_schema: Test
+      global_instruction: ''
+      instruction: ['Initial User Query for Course Creation:', '{query}']
+      disallow_transfer_to_parent: "True"
+      disallow_transfer_to_peers: "True"
+      function: __init__
+
+models:
+  gemini-2.0-flash:
+    type: literal
+    agents: [grader_agent]
+  gemini-2.5-flash:
+    type: literal
+    agents: [tester_agent, agent]
+  gemini-2.5-flash-lite-preview-06-17:
+    type: literal
+    agents: [image_agent, planner_agent, info_agent]
+  gemini-2.5-flash-preview-05-20:
+    type: literal
+    agents: [agent.ChatAgent.chat_agent, html_agent]
+  gemini-2.5-pro:
+    type: literal
+    agents: [agent.LearningFlashcardAgent.llm_agent, agent.TestingFlashcardAgent.llm_agent, explainer_agent]
+
+tools:
+  unsplash_mcp_toolset:
+    type: mcp
+    agents: [image_agent]
+    params:
+      class: MCPToolset
+      mcp_server: unsplash_mcp_toolset
+
+mcp:
+  unsplash_mcp_toolset:
+    type: process
+    agents: [image_agent]
+    params:
+      class: MCPToolset
+      connection_type: StdioServerParameters
+      command: uv
+      args: [run, --with, fastmcp, fastmcp, run, path_to_mcp_server]
+      env:
+        null: os.environ
+
+imports:
+  ABC: abc.ABC
+  abstractmethod: abc.abstractmethod
+  agent_service: courses.agent_service
+  AgentService: services.agent_service.AgentService
+  AnkiDeckGenerator: anki_generator.AnkiDeckGenerator
+  Any: typing.Any
+  APIRouter: fastapi.APIRouter
+  AsyncGenerator: typing.AsyncGenerator
+  asyncio: asyncio
+  BackgroundTasks: fastapi.BackgroundTasks
+  Base: database.Base
+  BaseAgent: google.adk.agents.BaseAgent
+  BaseModel: pydantic.BaseModel
+  Callable: typing.Callable
+  CallbackContext: google.adk.agents.callback_context.CallbackContext
+  Chapter: db.models.db_course.Chapter
+  chapters_crud: db.crud.chapters_crud
+  ChapterSchema: schemas.course.Chapter
+  chat_service: services.chat_service.chat_service
+  ChatAgent: agent.ChatAgent
+  ChatRequest: schemas.chat.ChatRequest
+  ChatResponse: schemas.chat.ChatResponse
+  clean_up_response: code_checker.code_checker.clean_up_response
+  CodingExplainer: agent.CodingExplainer
+  Column: sqlalchemy.Column
+  constr: pydantic.constr
+  contextmanager: contextlib.contextmanager
+  copy: copy
+  Course: db.models.db_course.Course
+  course_service: services.course_service
+  CourseContentService: services.course_content_service.CourseContentService
+  CourseInfo: schema.CourseInfo
+  CourseRequest: api.schemas.course.CourseRequest
+  courses_crud: db.crud.courses_crud
+  CourseState: state_service.CourseState
+  CourseStatus: db.models.db_course.CourseStatus
+  create_engine: sqlalchemy.create_engine
+  create_text_query: agents.utils.create_text_query
+  DatabaseSessionService: google.adk.sessions.DatabaseSessionService
+  DateTime: sqlalchemy.DateTime
+  datetime: datetime
+  declarative_base: sqlalchemy.ext.declarative.declarative_base
+  Depends: fastapi.Depends
+  Dict: typing.Dict
+  Document: db.models.db_file.Document
+  documents_crud: db.crud.documents_crud
+  Enum: enum.Enum
+  ESLintValidator: code_checker.code_checker.ESLintValidator
+  ExplainerAgent: agents.explainer_agent.agent.ExplainerAgent
+  Field: pydantic.Field
+  FlashcardAgent: agent.FlashcardAgent
+  FlashcardConfig: schema.FlashcardConfig
+  FlashcardPreview: schema.FlashcardPreview
+  FlashcardType: schema.FlashcardType
+  ForeignKey: sqlalchemy.ForeignKey
+  func: sqlalchemy.sql.func
+  get_current_active_user: utils.auth.get_current_active_user
+  get_db: db.database.get_db
+  get_db_context: db.database.get_db_context
+  get_url_from_response: callbacks.get_url_from_response
+  getLogger: logging.getLogger
+  GraderAgent: agents.grader_agent.agent.GraderAgent
+  Grading: schema.Grading
+  HTTPException: fastapi.HTTPException
+  Image: db.models.db_file.Image
+  ImageAgent: agents.image_agent.agent.ImageAgent
+  images_crud: db.crud.images_crud
+  InfoAgent: agents.info_agent.agent.InfoAgent
+  InMemorySessionService: google.adk.sessions.InMemorySessionService
+  instructions: instructions_txt.instructions
+  Integer: sqlalchemy.Integer
+  json: json
+  JSONResponse: fastapi.responses.JSONResponse
+  LargeBinary: sqlalchemy.LargeBinary
+  LearningCard: schema.LearningCard
+  LearningFlashcardAgent: learning_agent.LearningFlashcardAgent
+  LearningPath: schema.LearningPath
+  List: typing.List
+  LiteLlm: google.adk.models.lite_llm.LiteLlm
+  Literal: typing.Literal
+  LlmAgent: google.adk.agents.LlmAgent
+  LlmResponse: google.adk.models.LlmResponse
+  load_instruction_from_file: utils.load_instruction_from_file
+  load_instructions_from_files: utils.load_instructions_from_files
+  logging: logging
+  LONGBLOB: sqlalchemy.dialects.mysql.LONGBLOB
+  LoopAgent: google.adk.agents.LoopAgent
+  MAX_COURSE_CREATIONS: config.settings.MAX_COURSE_CREATIONS
+  MAX_PRESENT_COURSES: config.settings.MAX_PRESENT_COURSES
+  max_tokens: litellm.max_tokens
+  MCPToolset: google.adk.tools.mcp_tool.mcp_toolset.MCPToolset
+  MultipleChoiceQuestion: schema.MultipleChoiceQuestion
+  Optional: typing.Optional
+  os: os
+  Path: pathlib.Path
+  PDFParser: pdf_parser.PDFParser
+  PlannerAgent: agents.planner_agent.PlannerAgent
+  PracticeQuestion: db.models.db_course.PracticeQuestion
+  QueryService: query_service.QueryService
+  QuestionResponse: schemas.questions.QuestionResponse
+  questions_crud: db.crud.questions_crud
+  random: random
+  re: re
+  relationship: sqlalchemy.orm.relationship
+  Request: fastapi.Request
+  RunConfig: google.adk.runners.RunConfig
+  Runner: google.adk.runners.Runner
+  Session: sqlalchemy.orm.Session
+  SessionLocal: db.database.SessionLocal
+  sessionmaker: sqlalchemy.orm.sessionmaker
+  settings: config.settings
+  shutil: shutil
+  SQLALCHEMY_DATABASE_URL: config.settings.SQLALCHEMY_DATABASE_URL
+  StandardAgent: agent.StandardAgent
+  StateService: state_service.StateService
+  status: fastapi.status
+  StdioServerParameters: google.adk.tools.mcp_tool.mcp_toolset.StdioServerParameters
+  StreamingMode: google.adk.agents.run_config.StreamingMode
+  StreamingResponse: fastapi.responses.StreamingResponse
+  String: sqlalchemy.String
+  StructuredAgent: agent.StructuredAgent
+  subprocess: subprocess
+  TaskProgress: agents.flashcard_agent.schema.TaskProgress
+  TaskStatus: schema.TaskStatus
+  tempfile: tempfile
+  Test: schema.Test
+  TesterAgent: agents.tester_agent.TesterAgent
+  TestingFlashcardAgent: testing_agent.TestingFlashcardAgent
+  time: time
+  traceback: traceback
+  types: google.genai.types
+  UpdateCoursePublicStatusRequest: schemas.course.UpdateCoursePublicStatusRequest
+  usage_crud: db.crud.usage_crud
+  UsagePost: schemas.statistics.UsagePost
+  User: db.models.db_user.User
+  users_crud: db.crud.users_crud
+  uuid: uuid
+  vector_service: services.vector_service
+  verify_course_ownership: services.course_service.verify_course_ownership
+  WebSocket: fastapi.WebSocket
+  WebSocketDisconnect: fastapi.WebSocketDisconnect
+
+functions:
+  __init__:
+    type: sync
+    module: backend.src.services.agent_service
+    args: [self]
+  _generate_questions_from_chunks:
+    type: async
+    module: backend.src.agents.flashcard_agent.testing_agent
+    args: [self, text_content, difficulty, num_questions, progress_callback]
+    params:
+      returns: List[MultipleChoiceQuestion]
+  _parse_cards_response:
+    type: sync
+    module: backend.src.agents.flashcard_agent.learning_agent
+    args: [self, response]
+    params:
+      returns: List[dict]
+  _parse_eslint_output:
+    type: sync
+    module: backend.src.agents.code_checker.code_checker
+    args: [self, eslint_json_output]
+  _parse_questions_response:
+    type: sync
+    module: backend.src.agents.flashcard_agent.testing_agent
+    args: [self, response]
+    params:
+      returns: List[dict]
+  _process_chapter_parallel:
+    type: async
+    module: backend.src.agents.flashcard_agent.learning_agent
+    args: [self, chapter, chapter_index, image_paths, pdf_data, semaphore]
+    params:
+      returns: List[LearningCard]
+  _process_chunk_parallel:
+    type: async
+    module: backend.src.agents.flashcard_agent.testing_agent
+    args: [self, chunk, difficulty, chunk_questions, chunk_index, total_chunks, semaphore, progress_callback, start_time]
+    params:
+      returns: List[MultipleChoiceQuestion]
+  _review_and_correct_question:
+    type: async
+    module: backend.src.agents.tester_agent.agent
+    args: [self, question, user_id, state]
+    params:
+      returns: Optional[Dict]
+  _run_generation_task:
+    type: async
+    module: backend.src.services.flashcard_service
+    args: [self, task_id, document_id, config]
+  _split_text_into_chunks:
+    type: sync
+    module: backend.src.agents.flashcard_agent.testing_agent
+    args: [self, text, chunk_size, overlap]
+    params:
+      returns: List[str]
+  _validate_chat_request:
+    type: sync
+    module: backend.src.api.routers.chat
+    args: [chat_request]
+    params:
+      returns: None
+  analyze_document:
+    type: async
+    module: backend.src.services.flashcard_service
+    args: [self, document_id, config]
+    params:
+      returns: Optional[FlashcardPreview]
+  analyze_pdf:
+    type: async
+    module: backend.src.agents.flashcard_agent.agent
+    args: [self, pdf_path, config]
+    params:
+      returns: FlashcardPreview
+  cancel_task:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [self, task_id]
+    params:
+      returns: bool
+  chat_with_agent:
+    type: async
+    module: backend.src.api.routers.chat
+    args: [chapter_id, chat_request, current_user]
+    params:
+      returns: StreamingResponse
+  clean_up_response:
+    type: sync
+    module: backend.src.agents.code_checker.code_checker
+    args: [code_string]
+  code_test:
+    type: sync
+    module: backend.src.agents.code_checker.code_checker
+  create_course:
+    type: async
+    module: backend.src.services.agent_service
+    args: [self, user_id, course_id, request, task_id]
+  create_course_request:
+    type: async
+    module: backend.src.api.routers.courses
+    args: [course_request, background_tasks, current_user]
+    params:
+      returns: CourseInfo
+  create_docs_query:
+    type: sync
+    module: backend.src.agents.utils
+    args: [query, docs, images]
+    params:
+      returns: types.Content
+  create_task:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [self, document_id, config]
+    params:
+      returns: str
+  create_text_query:
+    type: sync
+    module: backend.src.agents.utils
+    args: [query]
+    params:
+      returns: types.Content
+  delete_chapter:
+    type: async
+    module: backend.src.api.routers.courses
+    args: [course_id, chapter_id, current_user, db]
+  delete_course:
+    type: async
+    module: backend.src.api.routers.courses
+    args: [course_id, current_user, db]
+  delete_task:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [self, task_id]
+    params:
+      returns: bool
+  extract_balanced_braces:
+    type: sync
+    module: backend.src.agents.code_checker.code_checker
+    args: [text, start_pos]
+  extract_function_body:
+    type: sync
+    module: backend.src.agents.code_checker.code_checker
+    args: [text, start_pos]
+  find_react_code_in_response:
+    type: sync
+    module: backend.src.agents.code_checker.code_checker
+    args: [text]
+    params:
+      returns: str
+  generate_flashcards:
+    type: async
+    module: backend.src.agents.flashcard_agent.agent
+    args: [self, pdf_path, config, progress_callback]
+    params:
+      returns: str
+  generate_learning_cards:
+    type: async
+    module: backend.src.agents.flashcard_agent.learning_agent
+    args: [self, chapters, image_paths, pdf_data]
+    params:
+      returns: List[LearningCard]
+  generate_questions:
+    type: async
+    module: backend.src.agents.flashcard_agent.testing_agent
+    args: [self, text_content, difficulty, num_questions, progress_callback]
+    params:
+      returns: List[MultipleChoiceQuestion]
+  get_chapter_by_id:
+    type: async
+    module: backend.src.api.routers.courses
+    args: [course_id, chapter_id, current_user, db]
+  get_course_by_id:
+    type: async
+    module: backend.src.api.routers.courses
+    args: [course_id, current_user, db]
+  get_course_chapters:
+    type: async
+    module: backend.src.api.routers.courses
+    args: [course_id, current_user, db]
+  get_db:
+    type: sync
+    module: backend.src.db.database
+  get_db_context:
+    type: sync
+    module: backend.src.db.database
+  get_document_info:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [self, document_id]
+    params:
+      returns: Optional[Dict]
+  get_document_path:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [self, document_id]
+    params:
+      returns: Optional[str]
+  get_download_path:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [self, task_id]
+    params:
+      returns: Optional[str]
+  get_feedback:
+    type: async
+    module: backend.src.api.routers.questions
+    args: [course_id, chapter_id, question_id, users_answer, current_user, db]
+  get_full_instructions:
+    type: sync
+    module: backend.src.agents.tester_agent.agent
+    args: [code_review]
+  get_practice_questions:
+    type: sync
+    module: backend.src.api.routers.questions
+    args: [questions]
+    params:
+      returns: List[QuestionResponse]
+  get_processing_history:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [self, user_id, limit]
+    params:
+      returns: List[Dict]
+  get_public_courses:
+    type: async
+    module: backend.src.api.routers.courses
+    args: [db, skip, limit]
+  get_questions_by_chapter_id:
+    type: async
+    module: backend.src.api.routers.questions
+    args: [course_id, chapter_id, current_user, db]
+  get_statistics:
+    type: sync
+    module: backend.src.api.routers.statistics
+  get_task_details:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [self, task_id]
+    params:
+      returns: Optional[Dict]
+  get_task_status:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [self, task_id]
+    params:
+      returns: Optional[TaskProgress]
+  get_url_from_response:
+    type: sync
+    module: backend.src.agents.callbacks
+    args: [callback_context, llm_response]
+    params:
+      returns: Optional[LlmResponse]
+  get_usage:
+    type: sync
+    module: backend.src.api.routers.statistics
+    args: [user_id, db, current_user]
+  get_user_courses:
+    type: async
+    module: backend.src.api.routers.courses
+    args: [current_user, db, skip, limit]
+  get_user_stats:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [self, user_id]
+    params:
+      returns: Dict
+  grade_question:
+    type: async
+    module: backend.src.services.agent_service
+    args: [self, user_id, course_id, question, correct_answer, users_answer, chapter_id, db]
+  is_jsx_element:
+    type: sync
+    module: backend.src.agents.code_checker.code_checker
+    args: [s]
+  load_instruction_from_file:
+    type: sync
+    module: backend.src.agents.utils
+    args: [filename, default_instruction]
+    params:
+      returns: str
+  load_instructions_from_files:
+    type: sync
+    module: backend.src.agents.utils
+    args: [filenames, separator]
+    params:
+      returns: str
+  main:
+    type: async
+    module: backend.src.agents.image_agent.agent
+  mark_chapter_complete:
+    type: async
+    module: backend.src.api.routers.courses
+    args: [course_id, chapter_id, current_user, db]
+  mark_chapter_incomplete:
+    type: async
+    module: backend.src.api.routers.courses
+    args: [course_id, chapter_id, current_user, db]
+  post_usage:
+    type: sync
+    module: backend.src.api.routers.statistics
+    args: [usage, db, current_user]
+  process_chapter:
+    type: async
+    module: backend.src.services.agent_service
+    args: [idx, topic]
+  process_chat_message:
+    type: async
+    module: backend.src.services.chat_service
+    args: [self, user_id, chapter_id, request]
+    params:
+      returns: AsyncGenerator
+  progress_callback:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [status, progress, details]
+  retry_task:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [self, task_id]
+    params:
+      returns: Optional[str]
+  run:
+    type: async
+    module: backend.src.agents.agent
+    args: [self, user_id, state, content, debug, max_retries, retry_delay]
+    params:
+      returns: Dict
+  save_answer:
+    type: async
+    module: backend.src.api.routers.questions
+    args: [course_id, chapter_id, question_id, users_answer, current_user, db]
+  save_questions:
+    type: async
+    module: backend.src.services.agent_service
+    args: [db, questions, chapter_id]
+  save_uploaded_file:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [self, file_content, filename]
+    params:
+      returns: str
+  set_task_download_url:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [self, task_id, download_url]
+  start_generation_task:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [self, document_id, config]
+    params:
+      returns: str
+  update_chapter:
+    type: async
+    module: backend.src.api.routers.courses
+    args: [course_id, chapter_id, caption, summary, content, time_minutes, image_url, current_user, db]
+  update_course_details:
+    type: async
+    module: backend.src.api.routers.courses
+    args: [course_id, title, description, current_user, db]
+  update_course_public_status:
+    type: async
+    module: backend.src.api.routers.courses
+    args: [course_id, request, current_user, db]
+  update_task_progress:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [self, task_id, status, progress, step, error, details]
+  upload_document:
+    type: sync
+    module: backend.src.services.flashcard_service
+    args: [self, file_content, filename]
+    params:
+      returns: Dict
+  validate_jsx:
+    type: sync
+    module: backend.src.agents.code_checker.code_checker
+    args: [self, jsx_code]
+
+files:
+  ../tools/unsplash_mcp_server.py:
+    type: pattern
+    actions: [read]
+    params:
+      caller: [os.path.join]
+      pattern: [os.path.dirname(), ../tools/unsplash_mcp_server.py]
+  ./flashcard_uploads:
+    type: literal
+    actions: [read]
+    params:
+      caller: [__init__]
+  .jsx:
+    type: literal
+    actions: [write]
+    params:
+      caller: [tempfile.NamedTemporaryFile]
+      mode: w
+      dir: self.temp_jsx_dir
+      delete: "False"
+      encoding: utf-8
+  /tmp:
+    type: literal
+    actions: [read]
+    params:
+      caller: [__init__]
+  /tmp/flashcard_uploads:
+    type: literal
+    actions: [read]
+    params:
+      caller: [__init__]
+  apkg_path:
+    type: variable
+    actions: [read]
+    params:
+      caller: [shutil.move]
+  eslint.config.js:
+    type: pattern
+    actions: [read]
+    params:
+      caller: [os.path.join]
+      pattern: [location, eslint.config.js]
+  file_path:
+    type: variable
+    actions: [write, delete]
+    params:
+      caller: [open, file_path.unlink]
+      alias: [f]
+  filepath:
+    type: variable
+    actions: [read]
+    params:
+      caller: [open]
+      alias: [f]
+  package.json:
+    type: pattern
+    actions: [read]
+    params:
+      caller: [os.path.join]
+      pattern: [location, package.json]
+  pdf_path:
+    type: variable
+    actions: [read]
+    params:
+      caller: [os.path.exists]
+  required_path:
+    type: variable
+    actions: [read]
+    params:
+      caller: [os.path.exists]
+  temp_file_path:
+    type: variable
+    actions: [delete]
+    params:
+      caller: [os.remove]
+
+processes:
+  self.eslint_executable:
+    type: shell
+    actions: [exec]
+    args: [[--quiet, --format, json, --config, self.config_file_path, temp_file_path]]
+    params:
+      caller: [subprocess.run]
+      shell: ["False"]
+  uv:
+    type: mcp
+    actions: [exec]
+    args: [[run, --with, fastmcp, fastmcp, run]]
+    params:
+      caller: [StdioServerParameters]
+      shell: ["False"]
